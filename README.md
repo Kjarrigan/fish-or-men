@@ -17,7 +17,7 @@ The board consists of 13 fields.
 Each turn you roll a `d6`. Depending on it's color one of the 4 fished go 1 tile to the left or
 the boat. The boat start with two colored fishermen so it has a 2/6 change to move a tile.
 
-If a bot reaches a tile with a fish - the fish is catched (thrown into the boar) AND now the fishs
+If the boat reaches a tile with a fish - the fish is catched (thrown into the boat) AND now the fishs
 color counts toward the boat! So the more fish it catches the likelier it'll move further.
 
 If a fish reached the ocean tile it is safe. If you roll a color that is already safe you can chose
