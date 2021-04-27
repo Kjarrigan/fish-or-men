@@ -4,7 +4,18 @@ $stdout.sync = true
 
 Token = Struct.new :type, :moves, :pos do
   def matches?(idx)
+    return false if @catched
+
     moves.include?(idx)
+  end
+
+  def catched!
+    self.pos = -1
+    @catched = true
+  end
+
+  def free
+    @catched = false
   end
 
   def to_s
@@ -31,7 +42,10 @@ TOKENS = [
 
 def reset
   TOKENS.each do |t|
-    t.pos = START_POSITION if t.fish?
+    if t.fish?
+      t.pos = START_POSITION
+      t.free
+    end
     if t.boat?
       t.pos = 13
       t.moves = [5,6]
@@ -42,7 +56,7 @@ end
 def turn
   num = rand(1..6)
   token = TOKENS.find { _1.matches?(num) }
-  new_pos = token.pos - 1
+  new_pos = token.pos - 1 rescue binding.irb
 
   if ENV['DEBUG']
     puts "1d6 -> #{num} | #{token}"
@@ -70,7 +84,7 @@ def turn
         next if t.boat?
         if t.pos == new_pos
           token.moves += t.moves
-          t.pos = -1 # Catched
+          t.catched!
         end
       end
     else
@@ -119,8 +133,8 @@ def new_game
   end
 
   return :draw if catched == survived
-  return :fish if catched < survived
-  return :boat if catched > survived
+  return :fish if survived >= 3
+  return :boat if catched >= 3
 end
 
 
