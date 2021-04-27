@@ -31,23 +31,24 @@ Token = Struct.new :type, :moves, :pos do
   end
 end
 
-START_POSITION = 6
+START_POS_BOAT = 12
+START_POS_FISH = [5, 5, 5, 5]
 TOKENS = [
-  Token.new(:fish, [1], START_POSITION),
-  Token.new(:fish, [2], START_POSITION),
-  Token.new(:fish, [3], START_POSITION),
-  Token.new(:fish, [4], START_POSITION),
-  Token.new(:boat, [5, 6], 13),
+  Token.new(:fish, [1], START_POS_FISH),
+  Token.new(:fish, [2], START_POS_FISH),
+  Token.new(:fish, [3], START_POS_FISH),
+  Token.new(:fish, [4], START_POS_FISH),
+  Token.new(:boat, [5, 6], START_POS_BOAT),
 ]
 
 def reset
-  TOKENS.each do |t|
+  TOKENS.each_with_index do |t, idx|
     if t.fish?
-      t.pos = START_POSITION
+      t.pos = START_POS_FISH[idx % 4]
       t.free
     end
     if t.boat?
-      t.pos = 13
+      t.pos = START_POS_BOAT
       t.moves = [5,6]
     end
   end
@@ -102,7 +103,7 @@ def turn
 end
 
 def draw_board
-  (0..13).each do |tile_idx|
+  (0..START_POS_BOAT).each do |tile_idx|
     printf "%2d | ", tile_idx
     TOKENS.each do |t|
       next unless t.pos == tile_idx

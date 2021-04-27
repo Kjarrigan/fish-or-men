@@ -40,3 +40,42 @@ docker build . -t fish
 docker run -e DEBUG=1 fish 1
 docker run fish 1000000
 ```
+
+Each of the following tests was done with 100_000 games to determine the probabilities:
+
+### Test-1 : Original - 13 tiles, 4xfish@7, boat@13
+
+This confirms my "feeling" when playing the original - that it was "heavily" favored towards the
+boat.
+
+```ruby
+{:boat=>53464, :fish=>34000, :draw=>12536}
+```
+
+### Test-2 : More Tiles - 14 tiles, 4xfish@7, boat@14
+
+This evens out the odds quite a bit BUT it won't work for the physical game as I do not have more tiles
+int the box (I could handcraft one with my children which would probably be some fun, but I would like
+to find a solution that works with the base game)
+
+```ruby
+{:boat=>42317, :fish=>44961, :draw=>12722}
+```
+
+### Test-3 : Changed Starting Positions: 13 tiles, 2xfish@6, 2xfish@7, boat@13
+
+Not too bad either. Slightly higher draws but pretty close chances for fish and boat. I think this will
+for now be my setup for the physical game because it's super easy to setup.
+
+```ruby
+{:boat=>40692, :fish=>45417, :draw=>13891}
+```
+
+### Test-4: Changed Starting Positions, 13 tiles, 4xfish@6, boat@13
+
+This is only listed here because that what my original attempt was to tweak the chances for the fishes
+when playing the game. But it's heavily in favor of one team (this team the fishes).
+
+```ruby
+{:boat=>30469, :fish=>57329, :draw=>12202}
+```
