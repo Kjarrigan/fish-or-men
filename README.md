@@ -1,6 +1,6 @@
 # Math
 
-I own a game for children (age 3-7) which had some rules that seemed pretty unfair. You basically have to bet if
+I have a game¹ for children (age 3-7) which had some rules that seemed pretty unfair. You basically have to bet if
 team fish or team boat wins. And most of the time with the default rules the boat wins or maybe you get a draw.
 So I tweaked the rules a bit and it was more "even".
 
@@ -56,7 +56,7 @@ boat.
 
 This evens out the odds quite a bit BUT it won't work for the physical game as I do not have more tiles
 int the box (I could handcraft one with my children which would probably be some fun, but I would like
-to find a solution that works with the base game)
+to find a solution that works with the physical game as well)
 
 ```ruby
 {:boat=>42317, :fish=>44961, :draw=>12722}
@@ -73,9 +73,14 @@ for now be my setup for the physical game because it's super easy to setup.
 
 ### Test-4: Changed Starting Positions, 13 tiles, 4xfish@6, boat@13
 
-This is only listed here because that what my original attempt was to tweak the chances for the fishes
-when playing the game. But it's heavily in favor of one team (this team the fishes).
+This is only listed here because that whas my original attempt to tweak the chances for the fishes
+when playing the game. But it's heavily in favor of one team too (this team the fishes).
 
 ```ruby
 {:boat=>30469, :fish=>57329, :draw=>12202}
 ```
+
+## References:
+
+* ¹ The original game: https://www.ravensburger.de/produkte/spiele/mitbringspiele/tempo-kleine-fische-23334/index.html
+  There you'll fine the rules in German, French and Italian
