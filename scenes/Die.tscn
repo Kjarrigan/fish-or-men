@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://assets/die.png" type="Texture" id=1]
-[ext_resource path="res://Die.gd" type="Script" id=2]
+[ext_resource path="res://scenes/Die.gd" type="Script" id=2]
 
 [node name="Die" type="TextureButton"]
 texture_normal = ExtResource( 1 )

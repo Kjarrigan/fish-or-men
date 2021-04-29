@@ -1,20 +1,20 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://OceanTile.gd" type="Script" id=1]
-[ext_resource path="res://assets/ocean.png" type="Texture" id=2]
+[ext_resource path="res://scenes/FisherTile.gd" type="Script" id=1]
+[ext_resource path="res://assets/fisher.png" type="Texture" id=2]
 
 [node name="Tile" type="Node2D"]
 position = Vector2( 25, 300 )
 script = ExtResource( 1 )
 
 [node name="Sprite" type="Sprite" parent="."]
-position = Vector2( 103, 4 )
+position = Vector2( 100, 0 )
 texture = ExtResource( 2 )
 
 [node name="Water" type="VBoxContainer" parent="."]
-margin_left = 50.0
+margin_left = -24.0
 margin_top = -256.0
-margin_right = 98.0
+margin_right = 24.0
 margin_bottom = 264.0
 custom_constants/separation = 25
 alignment = 1

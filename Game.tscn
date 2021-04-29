@@ -1,18 +1,157 @@
 [gd_scene load_steps=6 format=2]
 
-[ext_resource path="res://Game.gd" type="Script" id=1]
-[ext_resource path="res://Die.tscn" type="PackedScene" id=2]
-[ext_resource path="res://fonts/static/Caveat-Medium.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://scenes/Die.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/Button.tscn" type="PackedScene" id=2]
+[ext_resource path="res://fonts/Game.tres" type="DynamicFont" id=3]
 [ext_resource path="res://assets/bg.png" type="Texture" id=4]
 
-[sub_resource type="DynamicFont" id=1]
-size = 50
-outline_size = 2
-outline_color = Color( 0, 0, 0, 1 )
-font_data = ExtResource( 3 )
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node2D
+
+var tiles : Array
+var token : Array
+
+var tile_size = 50.0
+var tile_height = 600.0
+var start_position = 6
+
+var tile = preload(\"res://scenes/Tile.tscn\")
+var fish = preload(\"res://scenes/Fish.tscn\")
+var boat = preload(\"res://scenes/Boat.tscn\")
+var boat_token
+var end_tile = preload(\"res://scenes/OceanTile.tscn\")
+var fisher_tile = preload(\"res://scenes/FisherTile.tscn\")
+var paused = true
+
+var wait_for_input = false
+
+func _ready():
+	new_game()
+	
+func new_game():
+	tiles = []
+	token = []
+	
+	var ocean = end_tile.instance()
+	for idx in range(11):
+		var t = tile.instance()
+		t.set_tile_index(idx)
+		tiles.append(t)
+
+	# Shuffle the tiles so the map looks slightly different every time
+	tiles.shuffle()
+	
+	# Start of the fishing boat
+	var t = fisher_tile.instance()
+	tiles.append(t)
+	tiles = [ocean] + tiles
+	
+	var x = 30
+	
+	for water in tiles:
+		water.position = Vector2(x, tile_height / 2 + 6)
+		x += water.width()
+		
+	# Loop backwards for the z-ordering because control nodes to not have
+	# a z-index param
+	for idx in tiles.size():
+		get_node(\"Board\").add_child(tiles[-idx-1])
+		
+	for idx in range(4):
+		var f = fish.instance()
+		f.set_token_index(idx)
+		token.append(f)
+		
+	for f in token:
+		tiles[start_position].place_token(f)
+		
+	boat_token = boat.instance()
+	tiles[tiles.size()-1].place_token(boat_token)
+	token.append(boat_token)
+	token.append(boat_token)
+
+	get_node(\"UI/ActionLabel\").text = \"Fish or Men - who will win? Click on a fish or the boat to start.\"
+	paused = false
+
+func move_token_index(i):
+	if paused:
+		return
+	if wait_for_input:
+		get_node(\"UI/ActionLabel\").text = \"You have to choose a fish before rolling again!\"
+		return false
+	else:
+		var t = token[i]
+		
+		# if a catched fish would move, the boat moves instead
+		if t.is_catched():
+			t = boat_token
+			
+		move_token(t)
+		return true
+		
+func move_token_manual(t):
+	if paused:
+		return	
+	if wait_for_input:
+		move_token(t)
+		wait_for_input = false
+		get_node(\"UI/ActionLabel\").text = \"\"
+	else:
+		get_node(\"UI/ActionLabel\").text = \"Click the die!\"
+		
+func end_game(msg):
+	get_node(\"UI/ActionLabel\").text = msg
+	paused = true
+	
+func check_victory_conditions():
+	if paused:
+		return
+	var rescued = tiles[0].get_node(\"Water\").get_children().size()
+	var catched = boat_token.get_node(\"Net\").get_children().size()
+	
+	if catched >= 3:
+		end_game('Team Boat wins!')
+	if rescued >= 3:
+		end_game('Team Fish wins!')
+	if rescued == 2 and catched == 2:
+		end_game('Tie!')
+	
+func different_fish(this_one):
+	if paused:
+		return	
+	for t in token:
+		if t.is_fish() and t != this_one and t.get_parent().get_parent().name != 'OceanTile':
+			return t
+
+func move_token(f):
+	if paused:
+		return	
+	var current_tile = f.get_parent().get_parent()
+	var next_tile = tiles.find(current_tile) - 1
+	if next_tile >= 0:
+		var box = f.get_parent()
+		box.remove_child(f)
+		tiles[next_tile].place_token(f)
+		
+		if f.is_boat():
+			f.catch_fish()
+	else:
+		if f.is_fish():
+			print(f)
+			move_token(different_fish(f))
+			#get_node(\"UI/ActionLabel\").text = \"Choose a fish!\"
+			#wait_for_input = true
+	check_victory_conditions()
+
+func _on_Exit_pressed():
+	get_tree().quit();
+
+func _on_New_pressed():
+	new_game()
+"
 
 [node name="Game" type="Node2D"]
-script = ExtResource( 1 )
+script = SubResource( 1 )
 
 [node name="Background" type="TextureRect" parent="."]
 margin_right = 1280.0
@@ -23,7 +162,6 @@ __meta__ = {
 }
 
 [node name="Board" type="Node2D" parent="."]
-z_index = 1
 
 [node name="UI" type="Control" parent="."]
 margin_right = 40.0
@@ -32,19 +170,40 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Die" parent="UI" instance=ExtResource( 2 )]
+[node name="Die" parent="UI" instance=ExtResource( 1 )]
 margin_left = 1152.0
-margin_top = 520.0
+margin_top = 200.0
 margin_right = 1212.0
-margin_bottom = 580.0
+margin_bottom = 260.0
 
 [node name="ActionLabel" type="Label" parent="UI"]
 margin_left = 16.0
 margin_top = 624.0
 margin_right = 1253.0
 margin_bottom = 687.0
-custom_fonts/font = SubResource( 1 )
+custom_fonts/font = ExtResource( 3 )
 text = "Catch the Fish!"
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="New" parent="UI" instance=ExtResource( 2 )]
+anchor_right = 34.8
+anchor_bottom = 9.2
+margin_left = -104.0
+margin_top = -216.0
+margin_right = -136.0
+margin_bottom = -294.0
+label = " New Game"
+
+[node name="Exit" parent="UI" instance=ExtResource( 2 )]
+anchor_right = 34.8
+anchor_bottom = 9.2
+margin_left = -104.0
+margin_top = 280.0
+margin_right = -136.0
+margin_bottom = 202.0
+label = " Exit"
+
+[connection signal="pressed" from="UI/New" to="." method="_on_New_pressed"]
+[connection signal="pressed" from="UI/Exit" to="." method="_on_Exit_pressed"]

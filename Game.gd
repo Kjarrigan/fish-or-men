@@ -7,12 +7,12 @@ var tile_size = 50.0
 var tile_height = 600.0
 var start_position = 10
 
-var fish = preload("res://Fish.tscn")
-var tile = preload("res://Tile.tscn")
-var boat = preload("res://Boat.tscn")
+var tile = preload("res://scenes/Tile.tscn")
+var fish = preload("res://scenes/Fish.tscn")
+var boat = preload("res://scenes/Boat.tscn")
 var boat_token
-var end_tile = preload("res://OceanTile.tscn")
-var fisher_tile = preload("res://FisherTile.tscn")
+var end_tile = preload("res://scenes/OceanTile.tscn")
+var fisher_tile = preload("res://scenes/FisherTile.tscn")
 
 var wait_for_input = false
 
