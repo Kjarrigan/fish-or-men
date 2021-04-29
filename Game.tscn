@@ -15,6 +15,7 @@ var tile_size = 50.0
 var tile_height = 600.0
 var start_position = 6
 
+var auto_roll_timer = Timer.new()
 var tile = preload(\"res://scenes/Tile.tscn\")
 var fish = preload(\"res://scenes/Fish.tscn\")
 var boat = preload(\"res://scenes/Boat.tscn\")
@@ -26,6 +27,8 @@ var paused = true
 var wait_for_input = false
 
 func _ready():
+	auto_roll_timer.connect(\"timeout\", self, \"_auto_roll\")
+	add_child(auto_roll_timer)
 	new_game()
 	
 func new_game():
@@ -47,7 +50,6 @@ func new_game():
 	tiles = [ocean] + tiles
 	
 	var x = 30
-	
 	for water in tiles:
 		water.position = Vector2(x, tile_height / 2 + 6)
 		x += water.width()
@@ -101,6 +103,7 @@ func move_token_manual(t):
 		
 func end_game(msg):
 	get_node(\"UI/ActionLabel\").text = msg
+	auto_roll_timer.stop()
 	paused = true
 	
 func check_victory_conditions():
@@ -120,7 +123,7 @@ func different_fish(this_one):
 	if paused:
 		return	
 	for t in token:
-		if t.is_fish() and t != this_one and t.get_parent().get_parent().name != 'OceanTile':
+		if t.is_fish() and t != this_one and not t.is_free() and not t.is_catched():
 			return t
 
 func move_token(f):
@@ -137,8 +140,9 @@ func move_token(f):
 			f.catch_fish()
 	else:
 		if f.is_fish():
-			print(f)
+			# Auto-Select a fish:
 			move_token(different_fish(f))
+			# Original Rules allow to select manually:
 			#get_node(\"UI/ActionLabel\").text = \"Choose a fish!\"
 			#wait_for_input = true
 	check_victory_conditions()
@@ -148,6 +152,15 @@ func _on_Exit_pressed():
 
 func _on_New_pressed():
 	new_game()
+	
+func _on_Auto_pressed():
+	if paused:
+		return
+	auto_roll_timer.wait_time = 0.25
+	auto_roll_timer.start()
+		
+func _auto_roll():
+	get_node(\"UI/Die\").emit_signal(\"pressed\")
 "
 
 [node name="Game" type="Node2D"]
@@ -196,6 +209,15 @@ margin_right = -136.0
 margin_bottom = -294.0
 label = " New Game"
 
+[node name="Auto" parent="UI" instance=ExtResource( 2 )]
+anchor_right = 34.8
+anchor_bottom = 9.2
+margin_left = -104.0
+margin_top = 30.0
+margin_right = -136.0
+margin_bottom = -48.0
+label = " Auto Roll"
+
 [node name="Exit" parent="UI" instance=ExtResource( 2 )]
 anchor_right = 34.8
 anchor_bottom = 9.2
@@ -206,4 +228,5 @@ margin_bottom = 202.0
 label = " Exit"
 
 [connection signal="pressed" from="UI/New" to="." method="_on_New_pressed"]
+[connection signal="pressed" from="UI/Auto" to="." method="_on_Auto_pressed"]
 [connection signal="pressed" from="UI/Exit" to="." method="_on_Exit_pressed"]

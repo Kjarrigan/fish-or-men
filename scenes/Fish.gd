@@ -26,3 +26,6 @@ func is_boat():
 
 func is_catched():
 	return get_parent().name == "Net"
+	
+func is_free():
+	return get_parent().get_parent().name == "OceanTile"
