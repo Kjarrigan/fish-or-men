@@ -12,12 +12,14 @@ var tiles : Array
 var token : Array
 
 enum Team {Fish, Man}
+enum GameMode {Classic, Fair, Random}
 var score = 0
+var current_game_mode = GameMode.Classic
 var rounds_counter = 0
 var bet_on_team
 var tile_size = 50.0
 var tile_height = 600.0
-var start_position = 6
+var start_position
 
 var auto_roll_timer = Timer.new()
 var tile = preload(\"res://scenes/Tile.tscn\")
@@ -36,12 +38,17 @@ func _ready():
 	new_game()
 	
 func new_game():
-	if not paused:
-		return
-		
+	match current_game_mode:
+		GameMode.Classic:
+			start_position = [6,6,6,6]
+		GameMode.Fair:
+			start_position = [5,5,6,6]
+		GameMode.Random:
+			var die = get_node(\"UI/Menu/Rolling/Die\")
+			start_position = [die.roll(1, 11),die.roll(1, 11),die.roll(1, 11),die.roll(1, 11)]
+
 	tiles = []
 	token = []
-	rounds_counter += 1
 	
 	var ocean = end_tile.instance()
 	for idx in range(11):
@@ -71,9 +78,7 @@ func new_game():
 		var f = fish.instance()
 		f.set_token_index(idx)
 		token.append(f)
-		
-	for f in token:
-		tiles[start_position].place_token(f)
+		tiles[start_position[idx]].place_token(f)
 		
 	boat_token = boat.instance()
 	tiles[tiles.size()-1].place_token(boat_token)
@@ -110,10 +115,11 @@ func move_token_manual(t):
 		get_node(\"UI/ActionLabel\").text = \"Click the die!\"
 		
 func end_game(msg):
-	get_node(\"UI/Score\").text = \"Score: \" + str(score) + \"/\" + str(rounds_counter)
-	get_node(\"UI/ActionLabel\").text = msg
 	auto_roll_timer.stop()
-	paused = true
+	paused = true	
+	rounds_counter += 1
+	get_node(\"UI/Menu/Score\").text = \"Score: \" + str(score) + \"/\" + str(rounds_counter)
+	get_node(\"UI/ActionLabel\").text = msg
 	
 func check_victory_conditions():
 	if paused:
@@ -148,6 +154,7 @@ func different_fish(this_one):
 	for t in token:
 		if t.is_fish() and t != this_one and not t.is_free() and not t.is_catched():
 			return t
+	assert(true, \"No matching fish found!\")
 
 func move_token(f):
 	if paused:
@@ -183,7 +190,7 @@ func start_game():
 	auto_roll_timer.start()
 		
 func _auto_roll():
-	get_node(\"UI/Die\").emit_signal(\"pressed\")
+	get_node(\"UI/Menu/Rolling/Die\").emit_signal(\"pressed\")
 
 func _on_TeamFish_pressed():
 	if paused:
@@ -196,6 +203,9 @@ func _on_TeamMen_pressed():
 		return
 	bet_on_team = Team.Man
 	start_game()
+
+func _on_Mode_item_selected(index):
+	current_game_mode = index
 "
 
 [node name="Game" type="Node2D"]
@@ -229,34 +239,82 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Die" parent="UI" instance=ExtResource( 1 )]
-margin_left = 1148.81
-margin_top = 234.451
-margin_right = 1236.81
-margin_bottom = 310.451
-
 [node name="Menu" type="VBoxContainer" parent="UI"]
 margin_left = 1088.0
 margin_top = 16.0
-margin_right = 1264.0
-margin_bottom = 149.0
+margin_right = 1267.0
+margin_bottom = 590.0
 __meta__ = {
 "_edit_group_": true,
 "_edit_use_anchors_": false
 }
 
 [node name="New" type="Button" parent="UI/Menu"]
-margin_right = 176.0
-margin_bottom = 64.0
+margin_right = 179.0
+margin_bottom = 78.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 2 )
 text = "New Game"
 
+[node name="Mode-Label" type="Label" parent="UI/Menu"]
+margin_top = 82.0
+margin_right = 179.0
+margin_bottom = 130.0
+custom_fonts/font = ExtResource( 2 )
+text = "Game Mode:"
+
+[node name="Mode" type="OptionButton" parent="UI/Menu"]
+margin_top = 134.0
+margin_right = 179.0
+margin_bottom = 212.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 2 )
+text = "Classic"
+align = 1
+items = [ "Classic", null, false, 0, null, "Fair", null, false, 1, null, "Hard", null, false, 2, null ]
+selected = 0
+
+[node name="Spacer" type="Control" parent="UI/Menu"]
+margin_top = 216.0
+margin_right = 179.0
+margin_bottom = 294.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Score" type="Label" parent="UI/Menu"]
+margin_top = 298.0
+margin_right = 179.0
+margin_bottom = 346.0
+custom_fonts/font = ExtResource( 2 )
+text = "Score: 0/0"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Rolling" type="CenterContainer" parent="UI/Menu"]
+margin_top = 350.0
+margin_right = 179.0
+margin_bottom = 410.0
+
+[node name="Die" parent="UI/Menu/Rolling" instance=ExtResource( 1 )]
+margin_left = 59.0
+margin_right = 119.0
+margin_bottom = 60.0
+
+[node name="Spacer2" type="Control" parent="UI/Menu"]
+margin_top = 414.0
+margin_right = 179.0
+margin_bottom = 492.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
 [node name="Exit" type="Button" parent="UI/Menu"]
-margin_top = 68.0
-margin_right = 176.0
-margin_bottom = 133.0
+margin_top = 496.0
+margin_right = 179.0
+margin_bottom = 574.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 2 )
@@ -289,18 +347,8 @@ size_flags_vertical = 3
 custom_fonts/font = ExtResource( 3 )
 text = "Men"
 
-[node name="Score" type="Label" parent="UI"]
-margin_left = 1083.0
-margin_top = 537.071
-margin_right = 1269.0
-margin_bottom = 600.071
-custom_fonts/font = ExtResource( 2 )
-text = "Score: 0/0"
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
 [connection signal="pressed" from="UI/Menu/New" to="." method="_on_New_pressed"]
+[connection signal="item_selected" from="UI/Menu/Mode" to="." method="_on_Mode_item_selected"]
 [connection signal="pressed" from="UI/Menu/Exit" to="." method="_on_Exit_pressed"]
 [connection signal="pressed" from="UI/Choice/TeamFish" to="." method="_on_TeamFish_pressed"]
 [connection signal="pressed" from="UI/Choice/TeamMen" to="." method="_on_TeamMen_pressed"]

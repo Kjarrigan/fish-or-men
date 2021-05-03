@@ -13,8 +13,8 @@ var rng = RandomNumberGenerator.new()
 func _ready():
 	rng.randomize();
 
-func roll():
-	return rng.randi_range(0, faces.size()-1);
+func roll(from=0, to=faces.size()-1):
+	return rng.randi_range(from, to);
 
 func _on_Die_pressed():
 	var token_index = roll();
