@@ -282,7 +282,7 @@ text = "Fish"
 
 [node name="TeamMen" type="Button" parent="UI/Choice"]
 margin_left = 247.0
-margin_right = 491.0
+margin_right = 490.0
 margin_bottom = 69.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
