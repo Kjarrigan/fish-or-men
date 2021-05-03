@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://scenes/Die.tscn" type="PackedScene" id=1]
-[ext_resource path="res://scenes/Button.tscn" type="PackedScene" id=2]
+[ext_resource path="res://fonts/Button.tres" type="DynamicFont" id=2]
 [ext_resource path="res://fonts/Game.tres" type="DynamicFont" id=3]
 [ext_resource path="res://assets/bg.png" type="Texture" id=4]
 
@@ -11,6 +11,10 @@ script/source = "extends Node2D
 var tiles : Array
 var token : Array
 
+enum Team {Fish, Man}
+var score = 0
+var rounds_counter = 0
+var bet_on_team
 var tile_size = 50.0
 var tile_height = 600.0
 var start_position = 6
@@ -32,8 +36,12 @@ func _ready():
 	new_game()
 	
 func new_game():
+	if not paused:
+		return
+		
 	tiles = []
 	token = []
+	rounds_counter += 1
 	
 	var ocean = end_tile.instance()
 	for idx in range(11):
@@ -72,7 +80,7 @@ func new_game():
 	token.append(boat_token)
 	token.append(boat_token)
 
-	get_node(\"UI/ActionLabel\").text = \"Fish or Men - who will win? Click on a fish or the boat to start.\"
+	get_node(\"UI/ActionLabel\").text = \"Fish or Man - who will win?\"
 	paused = false
 
 func move_token_index(i):
@@ -102,6 +110,7 @@ func move_token_manual(t):
 		get_node(\"UI/ActionLabel\").text = \"Click the die!\"
 		
 func end_game(msg):
+	get_node(\"UI/Score\").text = \"Score: \" + str(score) + \"/\" + str(rounds_counter)
 	get_node(\"UI/ActionLabel\").text = msg
 	auto_roll_timer.stop()
 	paused = true
@@ -112,12 +121,26 @@ func check_victory_conditions():
 	var rescued = tiles[0].get_node(\"Water\").get_children().size()
 	var catched = boat_token.get_node(\"Net\").get_children().size()
 	
+	var msg
 	if catched >= 3:
-		end_game('Team Boat wins!')
+		msg = 'Team Man wins - '		
+		if bet_on_team == Team.Man:
+			msg += 'You guessed correct!'
+			score += 1
+		else:
+			msg += 'You were wrong!'
+		end_game(msg)
 	if rescued >= 3:
-		end_game('Team Fish wins!')
+		msg = 'Team Fish wins - '
+		if bet_on_team == Team.Fish:
+			msg += 'You guessed correct!'
+			score += 1
+		else:
+			msg += 'You were wrong!'
+		end_game(msg)
 	if rescued == 2 and catched == 2:
-		end_game('Tie!')
+		msg = 'Tie - Bad luck!'
+		end_game(msg)
 	
 func different_fish(this_one):
 	if paused:
@@ -153,7 +176,7 @@ func _on_Exit_pressed():
 func _on_New_pressed():
 	new_game()
 	
-func _on_Auto_pressed():
+func start_game():
 	if paused:
 		return
 	auto_roll_timer.wait_time = 0.25
@@ -161,6 +184,18 @@ func _on_Auto_pressed():
 		
 func _auto_roll():
 	get_node(\"UI/Die\").emit_signal(\"pressed\")
+
+func _on_TeamFish_pressed():
+	if paused:
+		return
+	bet_on_team = Team.Fish
+	start_game()
+
+func _on_TeamMen_pressed():
+	if paused:
+		return
+	bet_on_team = Team.Man
+	start_game()
 "
 
 [node name="Game" type="Node2D"]
@@ -183,50 +218,89 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Die" parent="UI" instance=ExtResource( 1 )]
-margin_left = 1152.0
-margin_top = 200.0
-margin_right = 1212.0
-margin_bottom = 260.0
-
 [node name="ActionLabel" type="Label" parent="UI"]
 margin_left = 16.0
-margin_top = 624.0
+margin_top = 666.426
 margin_right = 1253.0
-margin_bottom = 687.0
+margin_bottom = 729.426
 custom_fonts/font = ExtResource( 3 )
-text = "Catch the Fish!"
+text = "Fish or Man - who will win?"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="New" parent="UI" instance=ExtResource( 2 )]
-anchor_right = 34.8
-anchor_bottom = 9.2
-margin_left = -104.0
-margin_top = -216.0
-margin_right = -136.0
-margin_bottom = -294.0
-label = " New Game"
+[node name="Die" parent="UI" instance=ExtResource( 1 )]
+margin_left = 1148.81
+margin_top = 234.451
+margin_right = 1236.81
+margin_bottom = 310.451
 
-[node name="Auto" parent="UI" instance=ExtResource( 2 )]
-anchor_right = 34.8
-anchor_bottom = 9.2
-margin_left = -104.0
-margin_top = 30.0
-margin_right = -136.0
-margin_bottom = -48.0
-label = " Auto Roll"
+[node name="Menu" type="VBoxContainer" parent="UI"]
+margin_left = 1088.0
+margin_top = 16.0
+margin_right = 1264.0
+margin_bottom = 149.0
+__meta__ = {
+"_edit_group_": true,
+"_edit_use_anchors_": false
+}
 
-[node name="Exit" parent="UI" instance=ExtResource( 2 )]
-anchor_right = 34.8
-anchor_bottom = 9.2
-margin_left = -104.0
-margin_top = 280.0
-margin_right = -136.0
-margin_bottom = 202.0
-label = " Exit"
+[node name="New" type="Button" parent="UI/Menu"]
+margin_right = 176.0
+margin_bottom = 64.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 2 )
+text = "New Game"
 
-[connection signal="pressed" from="UI/New" to="." method="_on_New_pressed"]
-[connection signal="pressed" from="UI/Auto" to="." method="_on_Auto_pressed"]
-[connection signal="pressed" from="UI/Exit" to="." method="_on_Exit_pressed"]
+[node name="Exit" type="Button" parent="UI/Menu"]
+margin_top = 68.0
+margin_right = 176.0
+margin_bottom = 133.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 2 )
+text = "Exit"
+
+[node name="Choice" type="HBoxContainer" parent="UI"]
+margin_left = 759.252
+margin_top = 665.059
+margin_right = 1250.25
+margin_bottom = 734.059
+__meta__ = {
+"_edit_group_": true,
+"_edit_use_anchors_": false
+}
+
+[node name="TeamFish" type="Button" parent="UI/Choice"]
+margin_right = 243.0
+margin_bottom = 69.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 3 )
+text = "Fish"
+
+[node name="TeamMen" type="Button" parent="UI/Choice"]
+margin_left = 247.0
+margin_right = 491.0
+margin_bottom = 69.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 3 )
+text = "Men"
+
+[node name="Score" type="Label" parent="UI"]
+margin_left = 1083.0
+margin_top = 537.071
+margin_right = 1269.0
+margin_bottom = 600.071
+custom_fonts/font = ExtResource( 2 )
+text = "Score: 0/0"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="pressed" from="UI/Menu/New" to="." method="_on_New_pressed"]
+[connection signal="pressed" from="UI/Menu/Exit" to="." method="_on_Exit_pressed"]
+[connection signal="pressed" from="UI/Choice/TeamFish" to="." method="_on_TeamFish_pressed"]
+[connection signal="pressed" from="UI/Choice/TeamMen" to="." method="_on_TeamMen_pressed"]
